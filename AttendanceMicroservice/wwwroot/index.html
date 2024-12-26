@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Microservice</title>
+    <link  rel="stylesheet" href="css/site.css"/>
+</head>
+<body>
+    <h1>Add Attendance Record</h1>
+    <form id="attendanceForm">
+        <label for="studentName">Student Name:</label>
+        <input type="text" id="studentName" name="studentName" required />
+        <br /><br />
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required />
+        <br /><br />
+        <label for="isPresent">Present:</label>
+        <input type="checkbox" id="isPresent" name="isPresent" />
+        <br /><br />
+        <button type="submit">Add Record</button>
+    </form>
+
+    <h1>Attendance Records</h1>
+    <table border="1" id="attendanceTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Student Name</th>
+                <th>Date</th>
+                <th>Present</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceTableBody">
+            <!-- Dynamic rows will be added here -->
+        </tbody>
+    </table>
+    <br />
+
+    <script>
+        document.getElementById("attendanceForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const studentName = document.getElementById("studentName").value;
+            const date = document.getElementById("date").value;
+            const isPresent = document.getElementById("isPresent").checked;
+
+            const response = await fetch("https://localhost:7092/api/Attendance/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: 0, studentName, date, isPresent })
+            });
+
+            if (response.ok) {
+                alert("Attendance record added successfully!");
+            } else {
+                alert("Failed to add attendance record.");
+            }
+        });
+
+        async function loadRecords() {
+            const response = await fetch("https://localhost:7092/api/Attendance/get");
+            if (response.ok) {
+                const records = await response.json();
+                const tableBody = document.querySelector("#attendanceTable tbody");
+                tableBody.innerHTML = ""; // Clear existing rows
+                records.forEach(record => {
+                    const row = `<tr>
+                        <td>${record.id}</td>
+                        <td>${record.studentName}</td>
+                        <td>${new Date(record.date).toLocaleDateString()}</td>
+                        <td>${record.isPresent ? "Yes" : "No"}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                alert("Failed to load attendance records.");
+            }
+        }
+            
+        // Load records on page load
+        window.onload = loadRecords;
+    </script>
+</body>
+</html>
